@@ -4,15 +4,15 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ADMINS = [(os.environ.get('ADMIN'), os.environ.get('DJANGO_SUPERUSER_EMAIL'))]
-DEBUG = False
+
+DEBUG =bool(int(os.environ.get('DEBUG',0)))
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 
 
-ALLOWED_HOSTS = ['172.105.151.90']
-
-
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS')
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+FILE_UPLOAD_PERMISSIONS = 0o644
 
 
 INSTALLED_APPS = [
@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'corsheaders',
      
 ]
-SITE_ID = 1
+SITE_ID = 2
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -66,20 +67,16 @@ CORS_ALLOW_CREDENTIALS = False
 CORS_ALLOWED_ORIGINS = [ 'http://localhost:3030',]
 CORS_ALLOWED_ORIGIN_REGEXES = ['http://localhost:3030',]
 
-import socket
-hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
 
-INTERNAL_IPS =[ '127.0.0.1']
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 SECURE_REFERRER_POLICY = "same-origin"
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-# SECURE_HSTS_SECONDS = 31536000
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') 
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('GOOGLE_CLIENT_ID')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
@@ -161,27 +158,31 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR,"static"),
 )
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_URL = 'user:login'
-
+AWS_S3_GZIP = True
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY =os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-AWS_DEFAULT_ACL = 'public-read'
+AWS_DEFAULT_ACL = None
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 AWS_LOCATION = 'static'
 STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+
+AWS_S3_REGION_NAME = 'eu-central-1'
 AWS_S3_FILE_OVERWRITE=False
+LOCATION ='media'
+AWS_FILE_EXPIRE = 200
+AWS_PRELOAD_METADATA = True
+AWS_QUERYSTRING_AUTH = False
+DEFAULT_FILE_STORAGE = 'Opes.storages.MediaStore'
 
-
-
-
+CKEDITOR_FILE_STORAGE='Opes.storages.MediaStore'
 DJANGO_NOTIFICATIONS_CONFIG = { 'USE_JSONFIELD': True}
 CACHE_LOCATION="redis://redis:6379"
 REDIS_DB_FSM=0
@@ -190,14 +191,14 @@ CACHES = {
  "redis": {
  "BACKEND": "redis_cache.RedisCache",
  "LOCATION": CACHE_LOCATION,
- "TIMEOUT": 300, 
+ "TIMEOUT": 60, 
  "KEY_PREFIX": "Opes",
   'OPTIONS': {
-            'DB': 1,
-           
+            'DB': 1,           
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             'PARSER_CLASS': 'redis.connection.HiredisParser',
             'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             'PICKLE_VERSION': -1,
             "IGNORE_EXCEPTIONS": True,
         },
@@ -212,14 +213,19 @@ SESSION_CACHE_ALIAS = "default"
 DEFAULT_AUTO_FIELD ="django.db.models.BigAutoField"
 
 
+
+
+EMAIL_HOST = 'smtppro.zoho.com'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_PORT = 587
+EMAIL_PORT = 465
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS=False
+EMAIL_USE_SSL=True
+SERVER_EMAIL = EMAIL_HOST_USER
+ADMINS = [(os.environ.get('ADMIN'), os.environ.get('DJANGO_SUPERUSER_EMAIL'))]
+
 AUTHENTICATION_BACKENDS = [
      
     'django.contrib.auth.backends.ModelBackend',
@@ -241,9 +247,9 @@ TAGGIT_CASE_INSENSITIVE = True
 LOGIN_URL = '/login/'
 
 CKEDITOR_ALLOW_NONIMAGE_FILES = False
+CKEDITOR_REQUIRE_STAFF=False
 
 
-AWS_QUERYSTRING_AUTH = False
 
 CKEDITOR_RESTRICT_BY_USER = True
 
@@ -394,5 +400,3 @@ LOGGING = {
         }
     }
 }
-
-
