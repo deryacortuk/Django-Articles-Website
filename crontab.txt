@@ -1,0 +1,7 @@
+MAILTO=""
+HOME=/app
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+SHELL=/bin/bash
+
+00 01 * * * /app/commands/clear_sessions.sh
+00 02 * * * /app/commands/backup_db.sh
